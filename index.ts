@@ -27,7 +27,6 @@ async function main() {
     const rpcUrl = getEnv('ETH_HTTP_RPC_URL');
     const wssUrl = getEnv('ETH_WSS_URL');
     const flashbotsUrl = getEnv('FLASHBOTS_URL');
-    // Using a fallback for PORT if not set
     const apiPort = parseInt(getEnv('PORT') || '8080', 10); 
     
     // 1. Initialize Bot Core
@@ -40,8 +39,7 @@ async function main() {
     );
 
     // 2. Initialize Worker Pool and API Server
-    // FIX: Construct the absolute path to the worker script to resolve 
-    // the "Cannot find module" error.
+    // FIX: Construct the absolute path to the worker script
     const workerPath = join(__dirname, 'ExecutionWorker.js'); 
     const workerPool = new WorkerPool(workerPath);
     
