@@ -1,18 +1,17 @@
-// ProductionMEVBot.ts
-
 import { ethers, providers } from 'ethers';
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber } from '@ethersproject/bignumber'; // Import is correct
 
-// FIX: TS2305 (Strategy export) and TS2835 (.js extension)
 import { logger } from './logger.js';
-import { Strategy } from './types.js'; 
-import { FlashbotsMEVExecutor } from './FlashbotsMEVExecutor.js';
-import { MempoolMonitor } from './MempoolMonitor.js'; 
+import { Strategy } from './types.js'; // FIX: Added .js extension
+import { FlashbotsMEVExecutor } from './FlashbotsMEVExecutor.js'; // FIX: Added .js extension
+import { MempoolMonitor } from './MempoolMonitor.js'; // FIX: Added .js extension
+import { APIServer } from './APIServer.js'; // FIX: Added import for APIServer
 
 export class ProductionMEVBot {
     private monitor: MempoolMonitor;
     private executor: FlashbotsMEVExecutor;
     private walletAddress: string;
+    private apiServer?: APIServer; // FIX: Added optional APIServer
 
     constructor(
         executor: FlashbotsMEVExecutor,
@@ -23,7 +22,8 @@ export class ProductionMEVBot {
         this.monitor = monitor;
         this.walletAddress = walletAddress;
     }
-
+    
+    // FIX: Removed APIServer setup from static create, should be done in index.ts or start()
     static async create(
         walletPrivateKey: string,
         authPrivateKey: string,
@@ -49,19 +49,19 @@ export class ProductionMEVBot {
 
     public start(): void {
         logger.info("Starting MEV Bot...");
-        // This method name resolves the TS2339 error in index.ts
+        
+        // This starts the WebSocket connection
         this.monitor.start(); 
 
-        // Start main strategy loop
+        // Start main strategy loop (currently placeholder)
         this.runStrategyLoop();
     }
 
     private async runStrategyLoop(): Promise<void> {
-        // Placeholder for the main logic. 
         if (this.monitor.isMonitoring) { 
             logger.debug("Mempool monitor is active. Ready to process transactions.");
         }
-        // ...
+        // NOTE: The main MEV logic loop will run here, analyzing transactions received by the monitor.
     }
 
     public stop(): void {
