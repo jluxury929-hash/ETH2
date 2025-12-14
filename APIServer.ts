@@ -1,12 +1,11 @@
-// APIServer.ts
-
 import express from 'express';
 import { logger } from './logger.js';
 import { WorkerPool } from './WorkerPool.js'; 
+import { WorkerStats } from './types.js'; // FIX: Imported WorkerStats for return type
 
 export class APIServer {
     private app: express.Application;
-    private port: number = 3000;
+    private port: number; // Removed default value from property
     private workerPool: WorkerPool;
 
     constructor(workerPool: WorkerPool, port: number = 3000) {
@@ -17,8 +16,9 @@ export class APIServer {
     }
 
     private setupRoutes() {
+        // FIX: WorkerPool.getStats() is public and returns WorkerStats
         this.app.get('/stats', (req, res) => {
-            const stats = this.workerPool.getStats(); 
+            const stats: WorkerStats = this.workerPool.getStats(); 
             res.json(stats);
         });
 
