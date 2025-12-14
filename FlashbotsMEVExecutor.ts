@@ -1,16 +1,11 @@
-// FlashbotsMEVExecutor.ts
-// Corrected import path assumes chains.ts is in the same directory (root)
-
 import { FlashbotsBundleProvider, FlashbotsBundleResolution } from '@flashbots/ethers-provider-bundle';
 import { providers, Wallet, utils, BigNumber } from 'ethers'; 
 import { TransactionRequest } from '@ethersproject/abstract-provider'; 
 
 import { logger } from './logger.js'; 
-// FINAL PATH FIX: chains.ts is a peer file, not in a subdirectory
-import { ChainConfig } from './chains.js'; 
+import { ChainConfig } from './chains.js'; // FIX: chains.js is a peer file
 
 export class FlashbotsMEVExecutor {
-    // ... (rest of the class implementation remains the same)
     private provider: providers.JsonRpcProvider;
     private walletSigner: Wallet;
     private flashbotsProvider: FlashbotsBundleProvider;
@@ -91,7 +86,7 @@ export class FlashbotsMEVExecutor {
                 blockNumber
             );
             
-            // Type assertion to resolve TS2339 error
+            // FIX: Type assertion (as any) is used to work around a types issue in the library
             const resolution = await (submission as any).wait(); 
 
             if (resolution === FlashbotsBundleResolution.BundleIncluded) {
