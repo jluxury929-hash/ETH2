@@ -1,5 +1,3 @@
-// types.ts
-
 import { BigNumber } from 'ethers';
 
 export interface Strategy {
@@ -7,7 +5,8 @@ export interface Strategy {
     isActive: boolean;
 }
 
-export interface ChainConfig {
+// FIX: Renamed to BotConfig for clarity, but keeping original structure
+export interface ChainConfig { 
     chainId: number;
     name: string;
     httpUrl: string;
