@@ -1,7 +1,6 @@
-// index.ts
-
 import { ProductionMEVBot } from './ProductionMEVBot.js'; // FIX: Added .js
-// import { logger } from './logger.js'; // Assuming logger is available globally or imported elsewhere
+import { APIServer } from './APIServer.js'; // FIX: Import APIServer
+import { WorkerPool } from './WorkerPool.js'; // FIX: Import WorkerPool
 
 // Helper function to safely get environment variables
 function getEnv(key: string): string {
@@ -13,17 +12,40 @@ function getEnv(key: string): string {
 }
 
 async function main() {
-    // FIX: TS2554 - ProductionMEVBot.create() expects 5 arguments, supplied via environment variables
+    
+    // FIX: Use the corrected ENV variable names from the .env file
+    const walletPrivateKey = getEnv('EVM_WALLET_PRIVATE_KEY');
+    const authPrivateKey = getEnv('EVM_AUTH_PRIVATE_KEY');
+    const rpcUrl = getEnv('ETH_HTTP_RPC_URL');
+    const wssUrl = getEnv('ETH_WSS_URL');
+    const flashbotsUrl = getEnv('FLASHBOTS_URL');
+    const apiPort = parseInt(getEnv('PORT') || '8080', 10);
+    
+    // 1. Initialize Bot Core
     const bot = await ProductionMEVBot.create(
-        getEnv('EVM_WALLET_PRIVATE_KEY'),
-        getEnv('EVM_AUTH_PRIVATE_KEY'),
-        getEnv('ETH_HTTP_RPC_URL'),
-        getEnv('ETH_WSS_URL'),
-        getEnv('FLASHBOTS_URL')
+        walletPrivateKey,
+        authPrivateKey,
+        rpcUrl,
+        wssUrl,
+        flashbotsUrl
     );
 
-    // FIX: TS2339 - The method is 'start()' not 'startMonitoring'
+    // 2. Initialize Worker Pool and API Server
+    // The worker thread file path should be relative to the running file (dist/index.js)
+    const workerPool = new WorkerPool('./ExecutionWorker.js'); 
+    const apiServer = new APIServer(workerPool, apiPort);
+    
+    // 3. Start services
     bot.start(); 
+    apiServer.start();
+
+    // 4. Handle graceful shutdown
+    process.on('SIGINT', () => {
+        console.log('\nShutting down gracefully...');
+        bot.stop();
+        workerPool.terminate();
+        process.exit(0);
+    });
 }
 
 main().catch(error => {
