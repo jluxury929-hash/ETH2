@@ -1,5 +1,3 @@
-// src/NonceManager.ts
-
 import { logger } from './logger.js';
 import { providers } from 'ethers';
 
@@ -17,7 +15,8 @@ export class NonceManager {
 
     public async initialize(): Promise<void> {
         try {
-            this.nonce = await this.provider.getTransactionCount(this.walletAddress, 'latest');
+            // FIX: Using 'pending' to get the latest nonce that *should* be used
+            this.nonce = await this.provider.getTransactionCount(this.walletAddress, 'pending'); 
             logger.info(`[NONCE] Initial nonce set to: ${this.nonce}`);
         } catch (error) {
             logger.error("[NONCE] Failed to fetch initial nonce. Ensure RPC is working.", error);
@@ -42,7 +41,8 @@ export class NonceManager {
     // Safety check: Re-sync nonce periodically
     public async reSyncNonce(): Promise<void> {
         try {
-            const currentChainNonce = await this.provider.getTransactionCount(this.walletAddress, 'latest');
+            // FIX: Using 'pending' to check against potential pending transactions
+            const currentChainNonce = await this.provider.getTransactionCount(this.walletAddress, 'pending'); 
             if (this.nonce !== undefined && currentChainNonce > this.nonce) {
                 logger.warn(`[NONCE] Nonce discrepancy detected. Local nonce (${this.nonce}) updated to chain nonce (${currentChainNonce}).`);
                 this.nonce = currentChainNonce;
