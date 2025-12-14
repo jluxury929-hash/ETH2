@@ -1,6 +1,14 @@
-import { ProductionMEVBot } from './ProductionMEVBot.js'; // FIX: Added .js
-import { APIServer } from './APIServer.js'; // FIX: Import APIServer
-import { WorkerPool } from './WorkerPool.js'; // FIX: Import WorkerPool
+import { ProductionMEVBot } from './ProductionMEVBot.js';
+import { APIServer } from './APIServer.js';
+import { WorkerPool } from './WorkerPool.js';
+
+// FIX: Import path and url modules for robust worker thread path resolution
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get the directory of the current module file (dist/index.js)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Helper function to safely get environment variables
 function getEnv(key: string): string {
@@ -13,13 +21,14 @@ function getEnv(key: string): string {
 
 async function main() {
     
-    // FIX: Use the corrected ENV variable names from the .env file
+    // Environment variables
     const walletPrivateKey = getEnv('EVM_WALLET_PRIVATE_KEY');
     const authPrivateKey = getEnv('EVM_AUTH_PRIVATE_KEY');
     const rpcUrl = getEnv('ETH_HTTP_RPC_URL');
     const wssUrl = getEnv('ETH_WSS_URL');
     const flashbotsUrl = getEnv('FLASHBOTS_URL');
-    const apiPort = parseInt(getEnv('PORT') || '8080', 10);
+    // Using a fallback for PORT if not set
+    const apiPort = parseInt(getEnv('PORT') || '8080', 10); 
     
     // 1. Initialize Bot Core
     const bot = await ProductionMEVBot.create(
@@ -31,8 +40,11 @@ async function main() {
     );
 
     // 2. Initialize Worker Pool and API Server
-    // The worker thread file path should be relative to the running file (dist/index.js)
-    const workerPool = new WorkerPool('./ExecutionWorker.js'); 
+    // FIX: Construct the absolute path to the worker script to resolve 
+    // the "Cannot find module" error.
+    const workerPath = join(__dirname, 'ExecutionWorker.js'); 
+    const workerPool = new WorkerPool(workerPath);
+    
     const apiServer = new APIServer(workerPool, apiPort);
     
     // 3. Start services
