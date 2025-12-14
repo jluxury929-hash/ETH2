@@ -1,5 +1,3 @@
-// WorkerPool.ts
-
 import { Worker } from 'worker_threads';
 import { logger } from './logger.js';
 import { 
@@ -15,6 +13,10 @@ export class WorkerPool { // Class must be exported for APIServer.ts to use it
     private tasks: Map<number, WorkerTaskWrapper> = new Map();
     private nextTaskId: number = 0;
     private maxWorkers: number;
+
+    // FIX: Tracking processed tasks for getStats()
+    private tasksProcessed: number = 0; 
+    private startTime: number = Date.now();
 
     constructor(workerPath: string, maxWorkers: number = 4) {
         this.maxWorkers = maxWorkers;
@@ -32,8 +34,10 @@ export class WorkerPool { // Class must be exported for APIServer.ts to use it
         
         if (task && data.result) { 
             task.resolver(data.result); 
+            this.tasksProcessed++; // Increment count on successful resolution
         } else if (task && !data.result) {
             task.resolver({ success: false, message: "Worker failed to return a result." });
+            this.tasksProcessed++; // Increment count even on failure
         }
         
         if (task) {
@@ -41,12 +45,12 @@ export class WorkerPool { // Class must be exported for APIServer.ts to use it
         }
     }
 
-    // FIX TS2305: getStats MUST be public for APIServer.ts to access it
+    // FIX: getStats() is public and provides real stats
     public getStats(): WorkerStats {
         return {
-            workerId: 0,
-            tasksProcessed: 0, 
-            uptimeSeconds: 0, 
+            workerId: 0, // Not applicable for the pool itself
+            tasksProcessed: this.tasksProcessed, 
+            uptimeSeconds: Math.floor((Date.now() - this.startTime) / 1000), 
             totalWorkers: this.workers.length
         };
     }
